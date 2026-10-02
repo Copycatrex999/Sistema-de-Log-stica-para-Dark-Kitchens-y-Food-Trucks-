@@ -25,8 +25,7 @@ Desarrollar una plataforma que facilite la administración y seguimiento de las 
 
 ## Tecnologías
 
-* Frontend: [tecnología]
-* Backend: [tecnología]
+
 * Base de datos: MySQL
 * Control de versiones: GitHub
 * Gestión del proyecto: Jira
