@@ -1,7 +1,5 @@
 -- -----------------------------------------------------
 -- Esquema de Base de Datos: bd_cocina_virtual_norm
--- Autor: IA Generada
--- Descripción: Estructura normalizada para gestión de Dark Kitchens
 -- -----------------------------------------------------
 
 CREATE SCHEMA IF NOT EXISTS `bd_cocina_virtual_norm` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
