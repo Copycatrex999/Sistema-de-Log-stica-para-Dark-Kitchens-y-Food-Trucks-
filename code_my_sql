@@ -2,47 +2,50 @@
 -- Esquema de Base de Datos: bd_cocina_virtual_norm
 -- -----------------------------------------------------
 
+-- Borrar esquema si existe para empezar de cero
+DROP SCHEMA IF EXISTS `bd_cocina_virtual_norm`;
+
 CREATE SCHEMA IF NOT EXISTS `bd_cocina_virtual_norm` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE `bd_cocina_virtual_norm`;
 
 -- -----------------------------------------------------
--- Tabla: ESTADO (Catálogo Centralizado)
+-- Tabla: ESTADO
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `ESTADO` (
-  `codigo` CHAR(2) NOT NULL COMMENT 'Ej: AC=Activo, IN=Inactivo, PE=Pendiente, PR=Preparando, EN=En Ruta, TR=Entregado',
+  `codigo` CHAR(2) NOT NULL,
   `nombre` VARCHAR(20) NOT NULL,
   PRIMARY KEY (`codigo`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Catálogo maestro de estados para todas las entidades';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- -----------------------------------------------------
--- Tabla: PLATAFORMA (Catálogo Centralizado)
+-- Tabla: PLATAFORMA (Correcta)
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `PLATAFORMA` (
-  `codigo` CHAR(2) NOT NULL COMMENT 'Ej: TF=Teléfono, UE=UberEats, RP=Rappi',
+  `codigo` CHAR(2) NOT NULL,
   `nombre` VARCHAR(50) NOT NULL,
   PRIMARY KEY (`codigo`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Catálogo de plataformas de origen de pedidos';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- -----------------------------------------------------
--- Tabla: UNIDAD_MEDIDA (Catálogo Centralizado)
+-- Tabla: UNIDAD_MEDIDA
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `UNIDAD_MEDIDA` (
-  `codigo` CHAR(2) NOT NULL COMMENT 'Ej: GR=Gramos, ML=Mililitros, UN=Unidad',
+  `codigo` CHAR(2) NOT NULL,
   `nombre` VARCHAR(50) NOT NULL,
   PRIMARY KEY (`codigo`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Catálogo de unidades de medida para insumos';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- -----------------------------------------------------
--- Tabla: CATEGORIA (Catálogo para Platillos)
+-- Tabla: CATEGORIA
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `CATEGORIA` (
-  `codigo` CHAR(2) NOT NULL COMMENT 'Ej: HB=Hamburguesas, AL=Alitas, BE=Bebidas',
+  `codigo` CHAR(2) NOT NULL,
   `nombre` VARCHAR(50) NOT NULL,
   PRIMARY KEY (`codigo`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Categorías de menú para los platillos';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- -----------------------------------------------------
--- Tabla: RESTAURANTE (La marca virtual)
+-- Tabla: RESTAURANTE
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `RESTAURANTE` (
   `id_restaurante` INT NOT NULL AUTO_INCREMENT,
@@ -75,14 +78,14 @@ CREATE TABLE IF NOT EXISTS `REPARTIDOR` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- -----------------------------------------------------
--- Tabla: INSUMO (Inventario de cocina)
+-- Tabla: INSUMO
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `INSUMO` (
   `id_insumo` INT NOT NULL AUTO_INCREMENT,
   `nombre` VARCHAR(100) NOT NULL,
-  `codigo_unidad_medida` CHAR(2) NOT NULL COMMENT 'Unidad base de gestión del insumo',
-  `stock_actual` DECIMAL(10, 2) NOT NULL DEFAULT 0.00 COMMENT 'Cantidad disponible',
-  `costo_inventario` DECIMAL(10, 2) NOT NULL DEFAULT 0.00 COMMENT 'Costo por unidad de medida',
+  `codigo_unidad_medida` CHAR(2) NOT NULL,
+  `stock_actual` DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
+  `costo_inventario` DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
   `codigo_estado` CHAR(2) NOT NULL DEFAULT 'AC',
   PRIMARY KEY (`id_insumo`),
   INDEX `fk_insumo_unidad_idx` (`codigo_unidad_medida` ASC),
@@ -100,11 +103,11 @@ CREATE TABLE IF NOT EXISTS `INSUMO` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- -----------------------------------------------------
--- Tabla: PLATILLO (Ítem del menú)
+-- Tabla: PLATILLO
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `PLATILLO` (
   `id_platillo` INT NOT NULL AUTO_INCREMENT,
-  `id_restaurante` INT NOT NULL COMMENT 'Dueño del platillo',
+  `id_restaurante` INT NOT NULL,
   `nombre` VARCHAR(150) NOT NULL,
   `costo_venta` DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
   `codigo_categoria` CHAR(2) NOT NULL,
@@ -131,12 +134,12 @@ CREATE TABLE IF NOT EXISTS `PLATILLO` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- -----------------------------------------------------
--- Tabla: RECETA (Composición del platillo)
+-- Tabla: RECETA
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `RECETA` (
   `id_platillo` INT NOT NULL,
   `id_insumo` INT NOT NULL,
-  `cantidad_requerida` DECIMAL(10, 2) NOT NULL DEFAULT 1.00 COMMENT 'Cantidad del insumo por 1 unidad de platillo',
+  `cantidad_requerida` DECIMAL(10, 2) NOT NULL DEFAULT 1.00,
   PRIMARY KEY (`id_platillo`, `id_insumo`),
   INDEX `fk_receta_insumo_idx` (`id_insumo` ASC),
   CONSTRAINT `fk_receta_platillo`
@@ -149,24 +152,25 @@ CREATE TABLE IF NOT EXISTS `RECETA` (
     REFERENCES `INSUMO` (`id_insumo`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Tabla intermedia M:N para definir ingredientes';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- -----------------------------------------------------
--- Tabla: PEDIDO (Transacción principal)
+-- Tabla: PEDIDO (CORREGIDA)
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `PEDIDO` (
   `id_pedido` BIGINT NOT NULL AUTO_INCREMENT,
-  `codigo_plataforma` CHAR(2) NOT NULL,
-  `codigo_estado` CHAR(2) NOT NULL DEFAULT 'PE' COMMENT 'Estado actual del pedido global',
+  -- Se corrige la referencia a la tabla 'PLATAFORMA' (antes decía 'platforma')
+  `codigo_plataforma` CHAR(2) NOT NULL, 
+  `codigo_estado` CHAR(2) NOT NULL DEFAULT 'PE',
   `hora_solicitud` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `hora_aceptado` DATETIME NULL,
-  `hora_entrega` DATETIME NULL COMMENT 'Hora final de entrega por repartidor',
+  `hora_entrega` DATETIME NULL,
   PRIMARY KEY (`id_pedido`),
   INDEX `fk_pedido_plataforma_idx` (`codigo_plataforma` ASC),
   INDEX `fk_pedido_estado_idx` (`codigo_estado` ASC),
   CONSTRAINT `fk_pedido_plataforma`
     FOREIGN KEY (`codigo_plataforma`)
-    REFERENCES `PLATFORMA` (`codigo`)
+    REFERENCES `PLATAFORMA` (`codigo`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
   CONSTRAINT `fk_pedido_estado`
@@ -177,7 +181,7 @@ CREATE TABLE IF NOT EXISTS `PEDIDO` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- -----------------------------------------------------
--- Tabla: DETALLE_PEDIDO (Ítems solicitados en el pedido)
+-- Tabla: DETALLE_PEDIDO
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `DETALLE_PEDIDO` (
   `id_pedido` BIGINT NOT NULL,
@@ -195,7 +199,7 @@ CREATE TABLE IF NOT EXISTS `DETALLE_PEDIDO` (
     REFERENCES `PLATILLO` (`id_platillo`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Relación N:M entre Pedido y Platillo';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- -----------------------------------------------------
 -- Tabla: ASIGNACION_REPARTIDOR
@@ -204,7 +208,7 @@ CREATE TABLE IF NOT EXISTS `ASIGNACION_REPARTIDOR` (
   `folio` INT NOT NULL AUTO_INCREMENT,
   `id_repartidor` BIGINT NOT NULL,
   `id_pedido` BIGINT NOT NULL,
-  `hora_salida` DATETIME NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Hora en que el repartidor recoge el pedido',
+  `hora_salida` DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`folio`),
   UNIQUE INDEX `id_pedido_UNIQUE` (`id_pedido` ASC),
   INDEX `fk_asignacion_repartidor_idx` (`id_repartidor` ASC),
@@ -218,21 +222,18 @@ CREATE TABLE IF NOT EXISTS `ASIGNACION_REPARTIDOR` (
     REFERENCES `PEDIDO` (`id_pedido`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Vincula pedido con repartidor y logística de salida';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- -----------------------------------------------------
--- Tabla: DETALLE_PEDIDO_INSUMO (DESGLOSE AUTOMÁTICO DE RECETA)
--- Tabla fundamental para la lógica de inventario.
--- Registra el consumo exacto de insumos por cada línea de detalle del pedido.
+-- Tabla: DETALLE_PEDIDO_INSUMO
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `DETALLE_PEDIDO_INSUMO` (
   `id_pedido` BIGINT NOT NULL,
   `id_platillo` INT NOT NULL,
   `id_insumo` INT NOT NULL,
-  `cantidad_consumida` DECIMAL(10, 2) NOT NULL COMMENT 'Cantidad restada del inventario',
+  `cantidad_consumida` DECIMAL(10, 2) NOT NULL,
   PRIMARY KEY (`id_pedido`, `id_platillo`, `id_insumo`),
   INDEX `fk_dpi_insumo_idx` (`id_insumo` ASC),
-  -- Esta FK compuesta asegura que el consumo pertenezca a un platillo válido dentro de un pedido
   CONSTRAINT `fk_dpi_pedido_platillo`
     FOREIGN KEY (`id_pedido` , `id_platillo`)
     REFERENCES `DETALLE_PEDIDO` (`id_pedido` , `id_platillo`)
@@ -243,11 +244,11 @@ CREATE TABLE IF NOT EXISTS `DETALLE_PEDIDO_INSUMO` (
     REFERENCES `INSUMO` (`id_insumo`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Trazabilidad del consumo de inventario por venta';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
 -- -----------------------------------------------------
--- INSERCIÓN DE DATOS DE PRUEBA (Flujo de Negocio)
+-- INSERCIÓN DE DATOS DE PRUEBA (Flujo Completo)
 -- -----------------------------------------------------
 
 -- 1. Catálogos Maestros
@@ -272,7 +273,7 @@ INSERT INTO RESTAURANTE (nombre, codigo_estado) VALUES
 INSERT INTO INSUMO (nombre, codigo_unidad_medida, stock_actual, costo_inventario, codigo_estado) VALUES 
 ('Carne 200g', 'UN', 100.00, 25.50, 'AC'),
 ('Pan Brioche', 'UN', 100.00, 8.00, 'AC'),
-('Queso Cheddar', 'GR', 5000.00, 0.15, 'AC'), -- 5kg de queso, costo por gramo
+('Queso Cheddar', 'GR', 5000.00, 0.15, 'AC'), -- 5kg de queso
 ('Alitas Pollo', 'KG', 50.00, 95.00, 'AC'), -- 50kg de alitas
 ('Salsa BBQ', 'LT', 20.00, 45.00, 'AC'), -- 20 litros de salsa
 ('Refresco Lata', 'UN', 300.00, 15.00, 'AC');
@@ -289,4 +290,26 @@ INSERT INTO RECETA (id_platillo, id_insumo, cantidad_requerida) VALUES
 INSERT INTO PLATILLO (id_restaurante, nombre, costo_venta, codigo_categoria, codigo_estado) VALUES 
 (2, 'Alitas BBQ 12pz', 180.00, 'AL', 'AC');
 -- Receta: 0.6kg alitas, 0.1lt salsa BBQ
-INSERT INTO RECETA (id_platillo, id_insumo, cantidad
+INSERT INTO RECETA (id_platillo, id_insumo, cantidad_requerida) VALUES 
+(2, 4, 0.60), (2, 5, 0.10); 
+
+-- Refresco (De Burger Co)
+INSERT INTO PLATILLO (id_restaurante, nombre, costo_venta, codigo_categoria, codigo_estado) VALUES 
+(1, 'Coca Cola Lata', 45.00, 'BE', 'AC');
+-- Receta: 1 lata
+INSERT INTO RECETA (id_platillo, id_insumo, cantidad_requerida) VALUES 
+(3, 6, 1.00);
+
+-- -----------------------------------------------------
+-- FLUJO DE PEDIDO (Simulación de Descuento de Inventario)
+-- -----------------------------------------------------
+
+-- PASO 1: Un cliente realiza un pedido (UberEats, Pendiente)
+INSERT INTO PEDIDO (id_pedido, codigo_plataforma, codigo_estado) VALUES 
+(1001, 'UE', 'PE');
+
+-- PASO 2: El pedido contiene ítems (2 Hamburguesas Clásicas)
+INSERT INTO DETALLE_PEDIDO (id_pedido, id_platillo, cantidad) VALUES 
+(1001, 1, 2);
+
+-- PASO 3: El sistema de cocina acepta el pedido y DESCUENTA AUTOMÁTICAMENTE
