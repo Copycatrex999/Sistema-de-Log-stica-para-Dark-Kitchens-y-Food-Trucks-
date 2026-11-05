@@ -1,315 +1,300 @@
--- -----------------------------------------------------
--- Esquema de Base de Datos: bd_cocina_virtual_norm
--- -----------------------------------------------------
+-- MySQL Workbench Forward Engineering
 
--- Borrar esquema si existe para empezar de cero
-DROP SCHEMA IF EXISTS `bd_cocina_virtual_norm`;
-
-CREATE SCHEMA IF NOT EXISTS `bd_cocina_virtual_norm` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-USE `bd_cocina_virtual_norm`;
+SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0;
+SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0;
+SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION';
 
 -- -----------------------------------------------------
--- Tabla: ESTADO
+-- Schema bd_cocina_virtual_norm
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `ESTADO` (
+DROP SCHEMA IF EXISTS `bd_cocina_virtual_norm`; -- Agregado para asegurar limpieza en pruebas
+CREATE SCHEMA IF NOT EXISTS `bd_cocina_virtual_norm` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci ;
+USE `bd_cocina_virtual_norm` ;
+
+-- -----------------------------------------------------
+-- Table `bd_cocina_virtual_norm`.`estado`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `bd_cocina_virtual_norm`.`estado` (
   `codigo` CHAR(2) NOT NULL,
   `nombre` VARCHAR(20) NOT NULL,
-  PRIMARY KEY (`codigo`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  PRIMARY KEY (`codigo`))
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_unicode_ci;
+
 
 -- -----------------------------------------------------
--- Tabla: PLATAFORMA (Correcta)
+-- Table `bd_cocina_virtual_norm`.`plataforma`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `PLATAFORMA` (
+CREATE TABLE IF NOT EXISTS `bd_cocina_virtual_norm`.`plataforma` (
   `codigo` CHAR(2) NOT NULL,
   `nombre` VARCHAR(50) NOT NULL,
-  PRIMARY KEY (`codigo`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  PRIMARY KEY (`codigo`))
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_unicode_ci;
+
 
 -- -----------------------------------------------------
--- Tabla: UNIDAD_MEDIDA
+-- Table `bd_cocina_virtual_norm`.`restaurante`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `UNIDAD_MEDIDA` (
-  `codigo` CHAR(2) NOT NULL,
-  `nombre` VARCHAR(50) NOT NULL,
-  PRIMARY KEY (`codigo`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- -----------------------------------------------------
--- Tabla: CATEGORIA
--- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `CATEGORIA` (
-  `codigo` CHAR(2) NOT NULL,
-  `nombre` VARCHAR(50) NOT NULL,
-  PRIMARY KEY (`codigo`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- -----------------------------------------------------
--- Tabla: RESTAURANTE
--- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `RESTAURANTE` (
+CREATE TABLE IF NOT EXISTS `bd_cocina_virtual_norm`.`restaurante` (
   `id_restaurante` INT NOT NULL AUTO_INCREMENT,
   `nombre` VARCHAR(100) NOT NULL,
   `codigo_estado` CHAR(2) NOT NULL DEFAULT 'AC',
   PRIMARY KEY (`id_restaurante`),
-  INDEX `fk_restaurante_estado_idx` (`codigo_estado` ASC),
+  INDEX `fk_restaurante_estado_idx` (`codigo_estado` ASC) VISIBLE,
   CONSTRAINT `fk_restaurante_estado`
     FOREIGN KEY (`codigo_estado`)
-    REFERENCES `ESTADO` (`codigo`)
+    REFERENCES `bd_cocina_virtual_norm`.`estado` (`codigo`)
     ON DELETE NO ACTION
-    ON UPDATE NO ACTION
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB
+AUTO_INCREMENT = 3
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_unicode_ci;
+
 
 -- -----------------------------------------------------
--- Tabla: REPARTIDOR
+-- Table `bd_cocina_virtual_norm`.`direccion`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `REPARTIDOR` (
+CREATE TABLE IF NOT EXISTS `bd_cocina_virtual_norm`.`direccion` (
+  `id_direccion` INT NOT NULL,
+  `calle` VARCHAR(45) NULL DEFAULT NULL,
+  `num_exterior` INT NULL DEFAULT NULL,
+  `num_interior` INT NULL DEFAULT NULL,
+  `colonia` VARCHAR(20) NULL DEFAULT NULL,
+  `codigo_postal` INT NULL DEFAULT NULL,
+  PRIMARY KEY (`id_direccion`))
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_unicode_ci;
+
+
+-- -----------------------------------------------------
+-- Table `bd_cocina_virtual_norm`.`sucursal`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `bd_cocina_virtual_norm`.`sucursal` (
+  `id_sucursal` INT NOT NULL,
+  `nombre` VARCHAR(20) NULL DEFAULT NULL,
+  `restaurante_id_restaurante` INT NOT NULL,
+  `direccion_id_direccion` INT NOT NULL,
+  PRIMARY KEY (`id_sucursal`, `direccion_id_direccion`),
+  UNIQUE INDEX `nombre_UNIQUE` (`nombre` ASC) VISIBLE,
+  INDEX `fk_sucursal_restaurante1_idx` (`restaurante_id_restaurante` ASC) VISIBLE,
+  INDEX `fk_sucursal_direccion1_idx` (`direccion_id_direccion` ASC) VISIBLE,
+  CONSTRAINT `fk_sucursal_restaurante1`
+    FOREIGN KEY (`restaurante_id_restaurante`)
+    REFERENCES `bd_cocina_virtual_norm`.`restaurante` (`id_restaurante`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_sucursal_direccion1`
+    FOREIGN KEY (`direccion_id_direccion`)
+    REFERENCES `bd_cocina_virtual_norm`.`direccion` (`id_direccion`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_unicode_ci;
+
+
+-- -----------------------------------------------------
+-- Table `bd_cocina_virtual_norm`.`pedido`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `bd_cocina_virtual_norm`.`pedido` (
+  `id_pedido` BIGINT NOT NULL AUTO_INCREMENT,
+  `codigo_plataforma` CHAR(2) NOT NULL,
+  `codigo_estado` CHAR(2) NOT NULL DEFAULT 'PE',
+  `hora_solicitud` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `hora_aceptado` DATETIME NULL DEFAULT NULL,
+  `hora_entrega` DATETIME NULL DEFAULT NULL,
+  `sucursal_id_sucursal` INT NOT NULL,
+  PRIMARY KEY (`id_pedido`),
+  INDEX `fk_pedido_plataforma_idx` (`codigo_plataforma` ASC) VISIBLE,
+  INDEX `fk_pedido_estado_idx` (`codigo_estado` ASC) VISIBLE,
+  INDEX `fk_pedido_sucursal1_idx` (`sucursal_id_sucursal` ASC) VISIBLE,
+  CONSTRAINT `fk_pedido_estado`
+    FOREIGN KEY (`codigo_estado`)
+    REFERENCES `bd_cocina_virtual_norm`.`estado` (`codigo`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_pedido_plataforma`
+    FOREIGN KEY (`codigo_plataforma`)
+    REFERENCES `bd_cocina_virtual_norm`.`plataforma` (`codigo`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_pedido_sucursal1`
+    FOREIGN KEY (`sucursal_id_sucursal`)
+    REFERENCES `bd_cocina_virtual_norm`.`sucursal` (`id_sucursal`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB
+AUTO_INCREMENT = 1002
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_unicode_ci;
+
+
+-- -----------------------------------------------------
+-- Table `bd_cocina_virtual_norm`.`repartidor`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `bd_cocina_virtual_norm`.`repartidor` (
   `id_repartidor` BIGINT NOT NULL AUTO_INCREMENT,
   `nombre_completo` VARCHAR(150) NOT NULL,
   `telefono` CHAR(10) NOT NULL,
   `codigo_estado` CHAR(2) NOT NULL DEFAULT 'AC',
   PRIMARY KEY (`id_repartidor`),
-  INDEX `fk_repartidor_estado_idx` (`codigo_estado` ASC),
+  INDEX `fk_repartidor_estado_idx` (`codigo_estado` ASC) VISIBLE,
   CONSTRAINT `fk_repartidor_estado`
     FOREIGN KEY (`codigo_estado`)
-    REFERENCES `ESTADO` (`codigo`)
+    REFERENCES `bd_cocina_virtual_norm`.`estado` (`codigo`)
     ON DELETE NO ACTION
-    ON UPDATE NO ACTION
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_unicode_ci;
+
 
 -- -----------------------------------------------------
--- Tabla: INSUMO
+-- Table `bd_cocina_virtual_norm`.`asignacion_repartidor`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `INSUMO` (
-  `id_insumo` INT NOT NULL AUTO_INCREMENT,
-  `nombre` VARCHAR(100) NOT NULL,
-  `codigo_unidad_medida` CHAR(2) NOT NULL,
-  `stock_actual` DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
-  `costo_inventario` DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
-  `codigo_estado` CHAR(2) NOT NULL DEFAULT 'AC',
-  PRIMARY KEY (`id_insumo`),
-  INDEX `fk_insumo_unidad_idx` (`codigo_unidad_medida` ASC),
-  INDEX `fk_insumo_estado_idx` (`codigo_estado` ASC),
-  CONSTRAINT `fk_insumo_unidad`
-    FOREIGN KEY (`codigo_unidad_medida`)
-    REFERENCES `UNIDAD_MEDIDA` (`codigo`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
-  CONSTRAINT `fk_insumo_estado`
-    FOREIGN KEY (`codigo_estado`)
-    REFERENCES `ESTADO` (`codigo`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- -----------------------------------------------------
--- Tabla: PLATILLO
--- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `PLATILLO` (
-  `id_platillo` INT NOT NULL AUTO_INCREMENT,
-  `id_restaurante` INT NOT NULL,
-  `nombre` VARCHAR(150) NOT NULL,
-  `costo_venta` DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
-  `codigo_categoria` CHAR(2) NOT NULL,
-  `codigo_estado` CHAR(2) NOT NULL DEFAULT 'AC',
-  PRIMARY KEY (`id_platillo`),
-  INDEX `fk_platillo_restaurante_idx` (`id_restaurante` ASC),
-  INDEX `fk_platillo_categoria_idx` (`codigo_categoria` ASC),
-  INDEX `fk_platillo_estado_idx` (`codigo_estado` ASC),
-  CONSTRAINT `fk_platillo_restaurante`
-    FOREIGN KEY (`id_restaurante`)
-    REFERENCES `RESTAURANTE` (`id_restaurante`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
-  CONSTRAINT `fk_platillo_categoria`
-    FOREIGN KEY (`codigo_categoria`)
-    REFERENCES `CATEGORIA` (`codigo`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
-  CONSTRAINT `fk_platillo_estado`
-    FOREIGN KEY (`codigo_estado`)
-    REFERENCES `ESTADO` (`codigo`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- -----------------------------------------------------
--- Tabla: RECETA
--- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `RECETA` (
-  `id_platillo` INT NOT NULL,
-  `id_insumo` INT NOT NULL,
-  `cantidad_requerida` DECIMAL(10, 2) NOT NULL DEFAULT 1.00,
-  PRIMARY KEY (`id_platillo`, `id_insumo`),
-  INDEX `fk_receta_insumo_idx` (`id_insumo` ASC),
-  CONSTRAINT `fk_receta_platillo`
-    FOREIGN KEY (`id_platillo`)
-    REFERENCES `PLATILLO` (`id_platillo`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
-  CONSTRAINT `fk_receta_insumo`
-    FOREIGN KEY (`id_insumo`)
-    REFERENCES `INSUMO` (`id_insumo`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- -----------------------------------------------------
--- Tabla: PEDIDO (CORREGIDA)
--- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `PEDIDO` (
-  `id_pedido` BIGINT NOT NULL AUTO_INCREMENT,
-  -- Se corrige la referencia a la tabla 'PLATAFORMA' (antes decía 'platforma')
-  `codigo_plataforma` CHAR(2) NOT NULL, 
-  `codigo_estado` CHAR(2) NOT NULL DEFAULT 'PE',
-  `hora_solicitud` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `hora_aceptado` DATETIME NULL,
-  `hora_entrega` DATETIME NULL,
-  PRIMARY KEY (`id_pedido`),
-  INDEX `fk_pedido_plataforma_idx` (`codigo_plataforma` ASC),
-  INDEX `fk_pedido_estado_idx` (`codigo_estado` ASC),
-  CONSTRAINT `fk_pedido_plataforma`
-    FOREIGN KEY (`codigo_plataforma`)
-    REFERENCES `PLATAFORMA` (`codigo`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
-  CONSTRAINT `fk_pedido_estado`
-    FOREIGN KEY (`codigo_estado`)
-    REFERENCES `ESTADO` (`codigo`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- -----------------------------------------------------
--- Tabla: DETALLE_PEDIDO
--- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `DETALLE_PEDIDO` (
-  `id_pedido` BIGINT NOT NULL,
-  `id_platillo` INT NOT NULL,
-  `cantidad` INT NOT NULL DEFAULT 1,
-  PRIMARY KEY (`id_pedido`, `id_platillo`),
-  INDEX `fk_detalle_pedido_platillo_idx` (`id_platillo` ASC),
-  CONSTRAINT `fk_detalle_pedido_pedido`
-    FOREIGN KEY (`id_pedido`)
-    REFERENCES `PEDIDO` (`id_pedido`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
-  CONSTRAINT `fk_detalle_pedido_platillo`
-    FOREIGN KEY (`id_platillo`)
-    REFERENCES `PLATILLO` (`id_platillo`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- -----------------------------------------------------
--- Tabla: ASIGNACION_REPARTIDOR
--- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `ASIGNACION_REPARTIDOR` (
+CREATE TABLE IF NOT EXISTS `bd_cocina_virtual_norm`.`asignacion_repartidor` (
   `folio` INT NOT NULL AUTO_INCREMENT,
   `id_repartidor` BIGINT NOT NULL,
   `id_pedido` BIGINT NOT NULL,
   `hora_salida` DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`folio`),
-  UNIQUE INDEX `id_pedido_UNIQUE` (`id_pedido` ASC),
-  INDEX `fk_asignacion_repartidor_idx` (`id_repartidor` ASC),
-  CONSTRAINT `fk_asignacion_repartidor`
-    FOREIGN KEY (`id_repartidor`)
-    REFERENCES `REPARTIDOR` (`id_repartidor`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
+  UNIQUE INDEX `id_pedido_UNIQUE` (`id_pedido` ASC) VISIBLE,
+  INDEX `fk_asignacion_repartidor_idx` (`id_repartidor` ASC) VISIBLE,
   CONSTRAINT `fk_asignacion_pedido`
     FOREIGN KEY (`id_pedido`)
-    REFERENCES `PEDIDO` (`id_pedido`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- -----------------------------------------------------
--- Tabla: DETALLE_PEDIDO_INSUMO
--- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `DETALLE_PEDIDO_INSUMO` (
-  `id_pedido` BIGINT NOT NULL,
-  `id_platillo` INT NOT NULL,
-  `id_insumo` INT NOT NULL,
-  `cantidad_consumida` DECIMAL(10, 2) NOT NULL,
-  PRIMARY KEY (`id_pedido`, `id_platillo`, `id_insumo`),
-  INDEX `fk_dpi_insumo_idx` (`id_insumo` ASC),
-  CONSTRAINT `fk_dpi_pedido_platillo`
-    FOREIGN KEY (`id_pedido` , `id_platillo`)
-    REFERENCES `DETALLE_PEDIDO` (`id_pedido` , `id_platillo`)
+    REFERENCES `bd_cocina_virtual_norm`.`pedido` (`id_pedido`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
-  CONSTRAINT `fk_dpi_insumo`
-    FOREIGN KEY (`id_insumo`)
-    REFERENCES `INSUMO` (`id_insumo`)
+  CONSTRAINT `fk_asignacion_repartidor`
+    FOREIGN KEY (`id_repartidor`)
+    REFERENCES `bd_cocina_virtual_norm`.`repartidor` (`id_repartidor`)
     ON DELETE NO ACTION
-    ON UPDATE NO ACTION
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_unicode_ci;
 
 
 -- -----------------------------------------------------
--- INSERCIÓN DE DATOS DE PRUEBA (Flujo Completo)
+-- Table `bd_cocina_virtual_norm`.`categoria`
 -- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `bd_cocina_virtual_norm`.`categoria` (
+  `codigo` CHAR(2) NOT NULL,
+  `nombre` VARCHAR(50) NOT NULL,
+  PRIMARY KEY (`codigo`))
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_unicode_ci;
 
--- 1. Catálogos Maestros
-INSERT INTO ESTADO (codigo, nombre) VALUES 
-('AC', 'Activo'), ('IN', 'Inactivo'), ('PE', 'Pendiente'), 
-('PR', 'En Preparación'), ('EN', 'En Ruta'), ('TR', 'Entregado');
-
-INSERT INTO PLATAFORMA (codigo, nombre) VALUES 
-('TF', 'Teléfono'), ('UE', 'UberEats'), ('RP', 'Rappi'), ('MT', 'Mostrador');
-
-INSERT INTO UNIDAD_MEDIDA (codigo, nombre) VALUES 
-('GR', 'Gramos'), ('ML', 'Mililitros'), ('UN', 'Unidades'), ('KG', 'Kilos'), ('LT', 'Litros');
-
-INSERT INTO CATEGORIA (codigo, nombre) VALUES 
-('HB', 'Hamburguesas'), ('AL', 'Alitas'), ('BE', 'Bebidas'), ('CM', 'Complementos');
-
--- 2. Restaurantes
-INSERT INTO RESTAURANTE (nombre, codigo_estado) VALUES 
-('Burger Co', 'AC'), ('Wing Spot', 'AC');
-
--- 3. Insumos (Inventario Inicial)
-INSERT INTO INSUMO (nombre, codigo_unidad_medida, stock_actual, costo_inventario, codigo_estado) VALUES 
-('Carne 200g', 'UN', 100.00, 25.50, 'AC'),
-('Pan Brioche', 'UN', 100.00, 8.00, 'AC'),
-('Queso Cheddar', 'GR', 5000.00, 0.15, 'AC'), -- 5kg de queso
-('Alitas Pollo', 'KG', 50.00, 95.00, 'AC'), -- 50kg de alitas
-('Salsa BBQ', 'LT', 20.00, 45.00, 'AC'), -- 20 litros de salsa
-('Refresco Lata', 'UN', 300.00, 15.00, 'AC');
-
--- 4. Platillos y Recetas
--- Hamburguesa Clásica (de Burger Co)
-INSERT INTO PLATILLO (id_restaurante, nombre, costo_venta, codigo_categoria, codigo_estado) VALUES 
-(1, 'Hamburguesa Clásica', 120.00, 'HB', 'AC');
--- Receta: 1 carne, 1 pan, 30g queso
-INSERT INTO RECETA (id_platillo, id_insumo, cantidad_requerida) VALUES 
-(1, 1, 1.00), (1, 2, 1.00), (1, 3, 30.00);
-
--- Alitas BBQ (de Wing Spot)
-INSERT INTO PLATILLO (id_restaurante, nombre, costo_venta, codigo_categoria, codigo_estado) VALUES 
-(2, 'Alitas BBQ 12pz', 180.00, 'AL', 'AC');
--- Receta: 0.6kg alitas, 0.1lt salsa BBQ
-INSERT INTO RECETA (id_platillo, id_insumo, cantidad_requerida) VALUES 
-(2, 4, 0.60), (2, 5, 0.10); 
-
--- Refresco (De Burger Co)
-INSERT INTO PLATILLO (id_restaurante, nombre, costo_venta, codigo_categoria, codigo_estado) VALUES 
-(1, 'Coca Cola Lata', 45.00, 'BE', 'AC');
--- Receta: 1 lata
-INSERT INTO RECETA (id_platillo, id_insumo, cantidad_requerida) VALUES 
-(3, 6, 1.00);
 
 -- -----------------------------------------------------
--- FLUJO DE PEDIDO (Simulación de Descuento de Inventario)
+-- Table `bd_cocina_virtual_norm`.`platillo`
 -- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `bd_cocina_virtual_norm`.`platillo` (
+  `id_platillo` INT NOT NULL AUTO_INCREMENT,
+  `id_restaurante` INT NOT NULL,
+  `nombre` VARCHAR(150) NOT NULL,
+  `costo_venta` DECIMAL(10,2) NOT NULL DEFAULT '0.00',
+  `codigo_categoria` CHAR(2) NOT NULL,
+  `codigo_estado` CHAR(2) NOT NULL DEFAULT 'AC',
+  PRIMARY KEY (`id_platillo`),
+  INDEX `fk_platillo_restaurante_idx` (`id_restaurante` ASC) VISIBLE,
+  INDEX `fk_platillo_categoria_idx` (`codigo_categoria` ASC) VISIBLE,
+  INDEX `fk_platillo_estado_idx` (`codigo_estado` ASC) VISIBLE,
+  CONSTRAINT `fk_platillo_categoria`
+    FOREIGN KEY (`codigo_categoria`)
+    REFERENCES `bd_cocina_virtual_norm`.`categoria` (`codigo`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_platillo_estado`
+    FOREIGN KEY (`codigo_estado`)
+    REFERENCES `bd_cocina_virtual_norm`.`estado` (`codigo`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_platillo_restaurante`
+    FOREIGN KEY (`id_restaurante`)
+    REFERENCES `bd_cocina_virtual_norm`.`restaurante` (`id_restaurante`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB
+AUTO_INCREMENT = 4
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_unicode_ci;
 
--- PASO 1: Un cliente realiza un pedido (UberEats, Pendiente)
-INSERT INTO PEDIDO (id_pedido, codigo_plataforma, codigo_estado) VALUES 
-(1001, 'UE', 'PE');
 
--- PASO 2: El pedido contiene ítems (2 Hamburguesas Clásicas)
-INSERT INTO DETALLE_PEDIDO (id_pedido, id_platillo, cantidad) VALUES 
-(1001, 1, 2);
+-- -----------------------------------------------------
+-- Table `bd_cocina_virtual_norm`.`detalle_pedido`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `bd_cocina_virtual_norm`.`detalle_pedido` (
+  `id_pedido` BIGINT NOT NULL,
+  `id_platillo` INT NOT NULL,
+  `cantidad` INT NOT NULL DEFAULT '1',
+  PRIMARY KEY (`id_pedido`, `id_platillo`),
+  INDEX `fk_detalle_pedido_platillo_idx` (`id_platillo` ASC) VISIBLE,
+  CONSTRAINT `fk_detalle_pedido_pedido`
+    FOREIGN KEY (`id_pedido`)
+    REFERENCES `bd_cocina_virtual_norm`.`pedido` (`id_pedido`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_detalle_pedido_platillo`
+    FOREIGN KEY (`id_platillo`)
+    REFERENCES `bd_cocina_virtual_norm`.`platillo` (`id_platillo`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_unicode_ci;
 
--- PASO 3: El sistema de cocina acepta el pedido y DESCUENTA AUTOMÁTICAMENTE
+
+-- -----------------------------------------------------
+-- Table `bd_cocina_virtual_norm`.`unidad_medida`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `bd_cocina_virtual_norm`.`unidad_medida` (
+  `codigo` CHAR(2) NOT NULL,
+  `nombre` VARCHAR(50) NOT NULL,
+  PRIMARY KEY (`codigo`))
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_unicode_ci;
+
+
+-- -----------------------------------------------------
+-- Table `bd_cocina_virtual_norm`.`insumo`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `bd_cocina_virtual_norm`.`insumo` (
+  `id_insumo` INT NOT NULL AUTO_INCREMENT,
+  `nombre` VARCHAR(100) NOT NULL,
+  `codigo_unidad_medida` CHAR(2) NOT NULL,
+  `costo_individual` DECIMAL(4,2) NULL DEFAULT NULL,
+  PRIMARY KEY (`id_insumo`),
+  INDEX `fk_insumo_unidad_idx` (`codigo_unidad_medida` ASC) VISIBLE,
+  CONSTRAINT `fk_insumo_unidad`
+    FOREIGN KEY (`codigo_unidad_medida`)
+    REFERENCES `bd_cocina_virtual_norm`.`unidad_medida` (`codigo`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB
+AUTO_INCREMENT = 7
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_unicode_ci;
+
+
+-- -----------------------------------------------------
+-- Table `bd_cocina_virtual_norm`.`sucursal_insumo_detalle`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `bd_cocina_virtual_norm`.`sucursal_insumo_detalle` (
+  `id_sucursal_insumo` INT NOT NULL, -- Ahora es parte clave de la PK
+  `sucursal_id_sucursal` INT NOT NULL,
+  `insumo_id_insumo` INT NOT NULL,
+  `cantidad_actual` INT NOT NULL,
+  `estado_codigo` CHAR(2) NOT NULL,
+  -- CORRECCIÓN 1: Se eliminó 'cantidad_actual' de la clave primaria.
+  -- La PK debe garantizar unicidad de la relación sucursal-insumo.
+  PRIMARY KEY (`id_sucursal_insumo`, `sucursal_id_sucursal`, `insumo_id_insumo`),
+  INDEX `fk_sucursal_insumo_detalle_sucursal1_idx` (`sucursal_id_sucursal` ASC) VISIBLE,
+  INDEX `fk_sucursal_insumo_detalle_insumo1_idx` (`insumo_id_insumo` ASC) VISIBLE
